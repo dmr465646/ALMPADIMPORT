@@ -6,7 +6,6 @@ on:
 jobs:
   deploy-solution:
     runs-on: windows-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
