@@ -1,34 +1,32 @@
-name: Deploy Power Automate Desktop Solution to Target Environment
 
-on:
-  workflow_dispatch:
+trigger:
+  branches:
+    include:
+      - main
 
-jobs:
-  deploy-solution:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+pool:
+  vmImage: 'windows-latest'
 
-      - name: Install Power Platform Tools
-        uses: microsoft/powerplatform-actions/actions-install@v1
+steps:
+  - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformToolInstaller@2
+    displayName: 'Install Power Platform Tools'
 
-      - name: Export solution from Dev (as managed)
-        uses: microsoft/powerplatform-actions/export-solution@v1
-        with:
-          environment-url: ${{ secrets.ENVIRONMENT_URL_DEV }}
-          app-id: ${{ secrets.CLIENT_ID }}
-          tenant-id: ${{ secrets.TENANT_ID }}
-          client-secret: ${{ secrets.CLIENT_SECRET }}
-          solution-name: 'Test'
-          solution-output-file: 'managed-solution.zip'
-          managed: true
+  - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.export-solution.PowerPlatformExportSolution@2
+    displayName: 'Export solution from Dev'
+    inputs:
+      Environment: '$(ENVIRONMENT_URL_DEV)'
+      ApplicationId: '$(CLIENT_ID)'
+      TenantId: '$(TENANT_ID)'
+      ClientSecret: '$(CLIENT_SECRET)'
+      SolutionName: 'Test'
+      OutputFile: 'managed-solution.zip'
+      Managed: true
 
-      - name: Import solution to Prod
-        uses: microsoft/powerplatform-actions/import-solution@v1
-        with:
-          environment-url: ${{ secrets.ENVIRONMENT_URL_PROD }}
-          app-id: ${{ secrets.CLIENT_ID }}
-          tenant-id: ${{ secrets.TENANT_ID }}
-          client-secret: ${{ secrets.CLIENT_SECRET }}
-          solution-file: 'managed-solution.zip'
+  - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.import-solution.PowerPlatformImportSolution@2
+    displayName: 'Import solution to Prod'
+    inputs:
+      Environment: '$(ENVIRONMENT_URL_PROD)'
+      ApplicationId: '$(CLIENT_ID)'
+      TenantId: '$(TENANT_ID)'
+      ClientSecret: '$(CLIENT_SECRET)'
+      SolutionInputFile: 'managed-solution.zip'
